@@ -1,0 +1,3 @@
+{{ ansible_managed | comment }}
+
+{{ bacula_director_sysconfig | encode_ini(quote='"', ucase_prop=true) }}

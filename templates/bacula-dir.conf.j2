@@ -1,0 +1,49 @@
+{{ ansible_managed | comment }}
+
+{% if bacula_director_config_director | length > 0 -%}
+{{ bacula_director_config_director | encode_nginx }}
+{%- endif %}
+
+{%- if bacula_director_config_catalog | length > 0 -%}
+{{ "\n" }}{{ bacula_director_config_catalog | encode_nginx }}
+{%- endif %}
+
+{%- if bacula_director_config_storage | length > 0 -%}
+{{ "\n" }}{{ bacula_director_config_storage | encode_nginx }}
+{%- endif %}
+
+{%- if bacula_director_config_pool | length > 0 -%}
+{{ "\n" }}{{ bacula_director_config_pool | encode_nginx }}
+{%- endif %}
+
+{%- if bacula_director_config_schedule | length > 0 -%}
+{{ "\n" }}{{ bacula_director_config_schedule | encode_nginx }}
+{%- endif %}
+
+{%- if bacula_director_config_fileset | length > 0 -%}
+{{ "\n" }}{{ bacula_director_config_fileset | encode_nginx }}
+{%- endif %}
+
+{%- if bacula_director_config_messages | length > 0 -%}
+{{ "\n" }}{{ bacula_director_config_messages | encode_nginx }}
+{%- endif %}
+
+{%- if bacula_director_config_jobdefs | length > 0 -%}
+{{ "\n" }}{{ bacula_director_config_jobdefs | encode_nginx }}
+{%- endif %}
+
+{%- for record in bacula_director_config_job -%}
+  {%- for item in record['items'] -%}
+    {{ "\n" }}{{ record['template'] | template_replace(item) | encode_nginx }}
+  {%- endfor %}
+{%- endfor %}
+
+{%- for record in bacula_director_config_client -%}
+  {%- for item in record['items'] -%}
+    {{ "\n" }}{{ record['template'] | template_replace(item) | encode_nginx }}
+  {%- endfor %}
+{%- endfor %}
+
+{%- if bacula_director_config_custom | length > 0 -%}
+{{ "\n" }}{{ bacula_director_config_custom | encode_nginx }}
+{%- endif %}

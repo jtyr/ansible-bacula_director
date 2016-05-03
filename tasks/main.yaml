@@ -1,0 +1,169 @@
+---
+
+- name: Test distribution
+  assert:
+    that: >
+      ansible_os_family == "RedHat"
+  tags:
+    - bacula_director_assert
+
+- name: Install Bacula Director package
+  package:
+    name: "{{ bacula_director_pkg }}"
+    state: present
+  notify:
+    - Restart Bacula Director service
+  tags:
+    - bacula_director_pkg
+
+- name: Install dependency for PostreSQL DB creation
+  package:
+    name: "{{ item }}"
+    state: present
+  when: >
+    bacula_director_db_engine == 'pgsql'
+  with_items: "{{ bacula_director_db_pgsql_pkgs }}"
+  tags:
+    - bacula_director_pkg
+    - bacula_director_db
+
+- name: Create PostreSQL DB
+  postgresql_db:
+    name: "{{ bacula_director_config_catalog_options_db_name }}"
+    login_host: "{{ bacula_director_config_catalog_options_db_address }}"
+    port: "{{ bacula_director_config_catalog_options_db_port }}"
+    login_user: "{{ bacula_director_db_login_user }}"
+    login_password: "{{ bacula_director_db_login_password }}"
+    encoding: SQL_ASCII
+    lc_collate: C
+    lc_ctype: C
+    template: template0
+  register: bacula_director_db_pgsql_created
+  when: >
+    bacula_director_db_engine == 'pgsql'
+  tags:
+    - bacula_director_db
+
+- name: Import Bacula DB schema for PostgreSQL
+  shell: >
+    sed -n '/END-OF-DATA/,/END-OF-DATA/{/END-OF-DATA/d;p}' /usr/libexec/bacula/make_postgresql_tables |
+    psql
+    --username {{ bacula_director_db_login_user }}
+    --host {{ bacula_director_config_catalog_options_db_address }}
+    --port {{ bacula_director_config_catalog_options_db_port }}
+    --dbname {{ bacula_director_config_catalog_options_db_name }}
+    --file -
+  args:
+    executable: /bin/bash
+  environment:
+    PGPASSWORD: "{{ bacula_director_db_login_password }}"
+  when: >
+    bacula_director_db_engine == 'pgsql' and
+    bacula_director_db_pgsql_created.changed
+  tags:
+    - bacula_director_db
+
+- name: Create PostgreSQL user
+  postgresql_user:
+    name: "{{ bacula_director_config_catalog_options_db_user }}"
+    db: "{{ bacula_director_config_catalog_options_db_name }}"
+    password: "{{ bacula_director_config_catalog_options_db_password }}"
+    priv: "{{ bacula_director_db_user_priv }}"
+    login_user: "{{ bacula_director_db_login_user }}"
+    login_password: "{{ bacula_director_db_login_password }}"
+    login_host: "{{ bacula_director_config_catalog_options_db_address }}"
+    port: "{{ bacula_director_config_catalog_options_db_port }}"
+  when: bacula_director_db_engine == 'pgsql'
+  tags:
+    - bacula_director_db
+
+- name: Install dependency for MySQL DB creation
+  yum:
+    name: "{{ item }}"
+    state: present
+  when: >
+    bacula_director_db_engine == 'mysql'
+  with_items: "{{ bacula_director_db_mysql_pkgs }}"
+  tags:
+    - bacula_director_pkg
+    - bacula_director_db
+
+- name: Create MySQL DB
+  mysql_db:
+    name: "{{ bacula_director_config_catalog_options_db_name }}"
+    login_host: "{{ bacula_director_config_catalog_options_db_address }}"
+    login_port: "{{ bacula_director_config_catalog_options_db_port }}"
+    login_user: "{{ bacula_director_db_login_user }}"
+    login_password: "{{ bacula_director_db_login_password }}"
+    config_file: "{{ bacula_director_db_mysql_config }}"
+  register: bacula_director_db_mysql_created
+  when: >
+    bacula_director_db_engine == 'mysql'
+  tags:
+    - bacula_director_db
+
+- name: Import Bacula DB schema for MySQL
+  shell: >
+    sed -n '/END-OF-DATA/,/END-OF-DATA/{/END-OF-DATA/d;/db_name/d;p}' /usr/libexec/bacula/make_mysql_tables |
+    mysql
+    --user={{ bacula_director_db_login_user }}
+    --password={{ bacula_director_db_login_password }}
+    --host={{ bacula_director_config_catalog_options_db_address }}
+    --port={{ bacula_director_config_catalog_options_db_port }}
+    {{ bacula_director_config_catalog_options_db_name }}
+  args:
+    executable: /bin/bash
+  when: >
+    bacula_director_db_engine == 'mysql' and
+    bacula_director_db_mysql_created.changed
+  tags:
+    - bacula_director_db
+
+- name: Create MySQL user
+  mysql_user:
+    login_host: "{{ bacula_director_config_catalog_options_db_address }}"
+    login_port: "{{ bacula_director_config_catalog_options_db_port }}"
+    login_user: "{{ bacula_director_db_login_user }}"
+    login_password: "{{ bacula_director_db_login_password }}"
+    config_file: "{{ bacula_director_db_mysql_config }}"
+    host: "{{ bacula_director_db_mysql_user_host }}"
+    name: "{{ bacula_director_config_catalog_options_db_user }}"
+    password: "{{ bacula_director_config_catalog_options_db_password }}"
+    priv: "{{ bacula_director_db_user_priv }}"
+  when: bacula_director_db_engine == 'mysql'
+  tags:
+    - bacula_director_db
+
+- name: Configure Bacula Director service
+  template:
+    src: bacula-dir.conf.j2
+    dest: "{{ bacula_director_config_file_path }}"
+  notify:
+    - Restart Bacula Director service
+  tags:
+    - bacula_director_config
+
+- name: Configure Bacula Director sysconfig
+  template:
+    src: bacula-dir.sysconfig.j2
+    dest: "{{ bacula_director_sysconfig_file }}"
+  notify:
+    - Restart Bacula Director service
+  when: ansible_os_family == "RedHat"
+  tags:
+    - bacula_director_config
+
+- name: Make sure the Bacula Director service is enabled
+  service:
+    name: "{{ bacula_director_service }}"
+    enabled: yes
+  tags:
+    - bacula_director_service
+
+- name: Make sure the Bacula Director service is running
+  service:
+    name: "{{ bacula_director_service }}"
+    state: started
+  register: bacula_director_service_started
+  tags:
+    - bacula_director_service

@@ -1,0 +1,9 @@
+---
+
+- name: Restart Bacula Director service
+  service:
+    name: "{{ bacula_director_service }}"
+    state: restarted
+  when: >
+    bacula_director_service_started is not defined or
+    not bacula_director_service_started.changed
