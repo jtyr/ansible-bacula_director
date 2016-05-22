@@ -1,7 +1,7 @@
 bacula_director
 ===============
 
-Ansible role which helps to intall and configure Bacula Director.
+Ansible role which helps to install and configure Bacula Director.
 
 The configuration of the role is done in such way that it should not be
 necessary to change the role for any kind of configuration. All can be
