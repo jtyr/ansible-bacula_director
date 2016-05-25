@@ -184,17 +184,6 @@ Examples
 
 ```
 
-This role requires [Config
-Encoders](https://github.com/jtyr/ansible/blob/jtyr-config_encoders/lib/ansible/plugins/filter/config_encoders.py).
-Download the file and put it into the `filter_plugins` directory in the root of
-your playbook:
-
-```
-$ mkdir ./filter_plugins
-$ cd ./filter_plugins
-$ curl -O https://github.com/jtyr/ansible/blob/jtyr-config_encoders/lib/ansible/plugins/filter/config_encoders.py
-```
-
 
 Role variables
 --------------
@@ -547,10 +536,10 @@ bacula_director_sysconfig: "{{
 Dependencies
 ------------
 
-- [Config Encoders](https://github.com/jtyr/ansible/blob/jtyr-config_encoders/lib/ansible/plugins/filter/config_encoders.py)
 - [`bacula_client`](https://github.com/jtyr/ansible-bacula_client) (optional)
 - [`bacula_console`](https://github.com/jtyr/ansible-bacula_console) (optional)
 - [`bacula_storage`](https://github.com/jtyr/ansible-bacula_storage) (optional)
+- [`config_encoder_filters`](https://github.com/jtyr/ansible-config_encoder_filters)
 - [`postgresql`](https://github.com/jtyr/ansible-postgresql) (optional)
 
 

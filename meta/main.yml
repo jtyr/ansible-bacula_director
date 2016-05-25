@@ -11,4 +11,5 @@ galaxy_info:
         - 6
   categories:
     - system
-dependencies: []
+dependencies:
+  - config_encoder_filters
