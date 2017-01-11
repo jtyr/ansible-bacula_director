@@ -10,7 +10,6 @@
 - name: Install Bacula Director package
   package:
     name: "{{ bacula_director_pkg }}"
-    state: present
   notify:
     - Restart Bacula Director service
   tags:
@@ -19,7 +18,6 @@
 - name: Install dependency for PostreSQL DB creation
   package:
     name: "{{ item }}"
-    state: present
   when: >
     bacula_director_db_engine == 'pgsql'
   with_items: "{{ bacula_director_db_pgsql_pkgs }}"
@@ -78,9 +76,8 @@
     - bacula_director_db
 
 - name: Install dependency for MySQL DB creation
-  yum:
+  package:
     name: "{{ item }}"
-    state: present
   when: >
     bacula_director_db_engine == 'mysql'
   with_items: "{{ bacula_director_db_mysql_pkgs }}"
