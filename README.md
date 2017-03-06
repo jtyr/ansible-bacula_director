@@ -515,8 +515,8 @@ bacula_director_config_custom: []
 bacula_director_sysconfig_file: /etc/sysconfig/bacula-dir
 
 # Default values of the default sysconfig options
-bacula_director_sysconfig_user: ""
-bacula_director_sysconfig_group: ""
+bacula_director_sysconfig_user: "bacula"
+bacula_director_sysconfig_group: "bacula"
 
 # Default sysconfig options
 bacula_director_sysconfig__default:

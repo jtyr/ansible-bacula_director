@@ -44,7 +44,7 @@
 
 - name: Import Bacula DB schema for PostgreSQL
   shell: >
-    sed -n '/END-OF-DATA/,/END-OF-DATA/{/END-OF-DATA/d;p}' /usr/libexec/bacula/make_postgresql_tables |
+    env sed -n '/END-OF-DATA/,/END-OF-DATA/{/END-OF-DATA/d;p}' /usr/libexec/bacula/make_postgresql_tables |
     psql
     --username {{ bacula_director_db_login_user }}
     --host {{ bacula_director_config_catalog_options_db_address }}
@@ -101,7 +101,7 @@
 
 - name: Import Bacula DB schema for MySQL
   shell: >
-    sed -n '/END-OF-DATA/,/END-OF-DATA/{/END-OF-DATA/d;/db_name/d;p}' /usr/libexec/bacula/make_mysql_tables |
+    env sed -n '/END-OF-DATA/,/END-OF-DATA/{/END-OF-DATA/d;/db_name/d;p}' /usr/libexec/bacula/make_mysql_tables |
     mysql
     --user={{ bacula_director_db_login_user }}
     --password={{ bacula_director_db_login_password }}
